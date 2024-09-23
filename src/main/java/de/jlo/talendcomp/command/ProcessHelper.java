@@ -28,6 +28,8 @@ public class ProcessHelper {
 	private final String endMarker = "PROCESSHELPER_STREAM_END";
 	private int countStdLines = 0;
 	private int countErrLines = 0;
+	private boolean stdStreamIsRunning = true;
+	private boolean errStreamIsRunning = true;
 	
 	/**
 	 * Creates a new command line or adds arguments to it.
@@ -133,22 +135,23 @@ public class ProcessHelper {
 	}
 	
 	public boolean next() {
-		boolean hasNext = false;
 		// fetch a standard out line
-		stdLine = stdQueue.poll(); // returns null if the queue is empty
-		if (stdLine != null && endMarker.equals(stdLine) == false) {
-			hasNext = true;
-		} else {
-			stdLine = null;
+		if (stdStreamIsRunning) {
+			stdLine = stdQueue.poll(); // returns null if the queue is empty
+			if (endMarker.equals(stdLine)) {
+				stdStreamIsRunning = false;
+				stdLine = null;
+			}
 		}
 		// fetch a error out line
-		errorLine = errQueue.poll(); // returns null if the queue is empty
-		if (errorLine != null && endMarker.equals(errorLine) == false) {
-			hasNext = true;
-		} else {
-			errorLine = null;
+		if (errStreamIsRunning) {
+			errorLine = errQueue.poll(); // returns null if the queue is empty
+			if (endMarker.equals(errorLine)) {
+				errStreamIsRunning = false;
+				errorLine = null;
+			}
 		}
-		return hasNext;
+		return stdStreamIsRunning || errStreamIsRunning;
 	}
 	
 	public boolean hasCurrentStdLine() throws IOException {
@@ -180,11 +183,11 @@ public class ProcessHelper {
 		return resultHandler.getExitValue();
 	}
 
-	public int getCountStdLines() {
+	public int getCountReceivedStdLines() {
 		return countStdLines;
 	}
 
-	public int getCountErrLines() {
+	public int getCountReceivedErrLines() {
 		return countErrLines;
 	}
 

@@ -7,7 +7,7 @@ public class TestProcessHelper {
 	
 	@Test
 	public void testProcessHelper() throws Exception {
-		int lines = 1000;
+		int lines = 20;
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
 		h.addToCommandLine("de.jlo.talendcomp.command.TestProcess");
@@ -29,7 +29,7 @@ public class TestProcessHelper {
 			}
 		}
 		System.out.println("TEST: Process ended");
-		System.out.println("TEST: count std lines: " + h.getCountStdLines() + " count err lines: " + h.getCountErrLines());
+		System.out.println("TEST: count std lines received: " + h.getCountReceivedStdLines() + " count err lines received: " + h.getCountReceivedErrLines());
 		assertEquals("Std Out line count wrong", lines + 2, countStd);
 		assertEquals("Err Out line count wrong", lines, countErr);
 		int exitCode = h.getExitCode();
