@@ -7,23 +7,33 @@ public class TestProcessHelper {
 	
 	@Test
 	public void testProcessHelper() throws Exception {
-		int lines = 7;
+		int lines = 1000;
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
 		h.addToCommandLine("de.jlo.talendcomp.command.TestProcess");
-		h.addToCommandLine(7);
+		h.addToCommandLine(lines);
 		h.setWorkDir("C:\\development\\eclipse-workspace\\talendcomp_tCommand\\target\\test-classes");
 		h.execute();
-		int count = 0;
-		System.out.println("Process started");
-		while (h.hasNextStd()) {
-			System.out.println("STD: " + h.nextStdOutLine());
-			count++;
+		int countStd = 0;
+		int countErr = 0;
+		System.out.println("TEST: Process started");
+		Thread.sleep(10000l); // simulate the delay to make the resources available working with the outputs
+		while (h.next()) {
+			if (h.hasCurrentStdLine()) {
+				System.out.println("STD: " + h.getStdOutLine());
+				countStd++;
+			}
+			if (h.hasCurrentErrLine()) {
+				System.out.println("ERR: " + h.getErrorOutLine());
+				countErr++;
+			}
 		}
-		System.out.println("Process ended");
-		assertEquals("Out line count wrong", lines + 2, count);
+		System.out.println("TEST: Process ended");
+		System.out.println("TEST: count std lines: " + h.getCountStdLines() + " count err lines: " + h.getCountErrLines());
+		assertEquals("Std Out line count wrong", lines + 2, countStd);
+		assertEquals("Err Out line count wrong", lines, countErr);
 		int exitCode = h.getExitCode();
-		System.out.println("Exit code: " + exitCode);
+		System.out.println("TEST: Exit code: " + exitCode);
 		assertEquals("Exit code wrong", 2, exitCode);
 	}
 

@@ -10,9 +10,10 @@ public class TestProcess {
 			System.out.println("Loop count: " + n);
 		}
 		for (int i = 0; i < n; i++) {
-			System.out.println("Loop: " + i);
+			System.out.println("standard: " + i);
+			System.err.println("failure: " + i);
 			try {
-				Thread.sleep(1000l);
+				Thread.sleep(0l);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
