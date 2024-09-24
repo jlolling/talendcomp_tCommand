@@ -13,7 +13,7 @@ public class TestProcess {
 			System.out.println("standard: " + i);
 			System.err.println("failure: " + i);
 			try {
-				Thread.sleep(0l);
+				Thread.sleep(200l);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

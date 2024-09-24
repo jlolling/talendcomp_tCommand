@@ -1,3 +1,18 @@
+/**
+ * Copyright 2024 Jan Lolling jan.lolling@gmail.com
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package de.jlo.talendcomp.command;
 
 import java.io.BufferedReader;
@@ -8,13 +23,15 @@ import java.io.OutputStream;
 
 import org.apache.commons.exec.ExecuteStreamHandler;
 
+/**
+ * Helper class providing the IO streams of the started process
+ */
 public class ProcessStreamProvider implements ExecuteStreamHandler {
 	
 	private BufferedReader errorOutReader = null;
 	private OutputStream inputOutputStream = null;
 	private BufferedReader standardOutReader = null;
 	private boolean running = false;
-	private boolean redirectErrOutToStdOut = true;
 	
 	@Override
 	public void setProcessErrorStream(InputStream inputStream) throws IOException {
@@ -49,7 +66,7 @@ public class ProcessStreamProvider implements ExecuteStreamHandler {
 
 	/**
 	 * returns the process error output stream as BufferedReader
-	 * @return
+	 * @return reader for error output
 	 */
 	public BufferedReader getErrorOutReader() {
 		return errorOutReader;
@@ -57,7 +74,7 @@ public class ProcessStreamProvider implements ExecuteStreamHandler {
 
 	/**
 	 * returns the process input stream
-	 * @return
+	 * @return 
 	 */
 	public OutputStream getInputOutputStream() {
 		return inputOutputStream;
@@ -65,7 +82,7 @@ public class ProcessStreamProvider implements ExecuteStreamHandler {
 
 	/**
 	 * returns standard out as BufferedReader
-	 * @return
+	 * @return reader for standard output
 	 */
 	public BufferedReader getStandardOutReader() {
 		return standardOutReader;
@@ -73,18 +90,10 @@ public class ProcessStreamProvider implements ExecuteStreamHandler {
 
 	/**
 	 * process is running and streams are active if true
-	 * @return
+	 * @return running state
 	 */
 	public boolean isRunning() {
 		return running;
-	}
-
-	public boolean isRedirectErrOutToStdOut() {
-		return redirectErrOutToStdOut;
-	}
-
-	public void setRedirectErrOutToStdOut(boolean redirectErrOutToStdOut) {
-		this.redirectErrOutToStdOut = redirectErrOutToStdOut;
 	}
 
 }

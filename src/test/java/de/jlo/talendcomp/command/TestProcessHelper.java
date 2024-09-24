@@ -17,7 +17,7 @@ public class TestProcessHelper {
 		int countStd = 0;
 		int countErr = 0;
 		System.out.println("TEST: Process started");
-		Thread.sleep(10000l); // simulate the delay to make the resources available working with the outputs
+		Thread.sleep(1l); // simulate the delay to make the resources available working with the outputs
 		while (h.next()) {
 			if (h.hasCurrentStdLine()) {
 				System.out.println("STD: " + h.getStdOutLine());
