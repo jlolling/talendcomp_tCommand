@@ -51,6 +51,13 @@ public class ProcessHelper {
 	private boolean errStreamIsRunning = true;
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	private int maxProcessRuntimeSec = 0;
+	private StringBuilder stdAllContent = null;
+	private StringBuilder errAllContent = null;
+	private boolean provideAllContentAtOnce = false;
+	private boolean redirectOutputToConsole = false;
+	private boolean sendErrOutputToStdOut = false;
+	private boolean commandProvided = false;
+	private int defaultOkExitCode = 0;
 	
 	public ProcessHelper() {
 		environmentMap = System.getenv();
@@ -59,7 +66,7 @@ public class ProcessHelper {
 	
 	/**
 	 * Creates a new command line or adds arguments to it.
-	 * 
+	 * The first line have to be the actual program and all further calls the arguments
 	 * @param command
 	 * @return this to allow builder pattern
 	 */
@@ -67,10 +74,25 @@ public class ProcessHelper {
 		if (command != null) {
 			if (commandLine == null) {
 				commandLine = new CommandLine(String.valueOf(command));
+				commandProvided = true;
 			} else {
 				commandLine.addArgument(String.valueOf(command));
 			}
 		}
+		return this;
+	}
+	
+	/**
+	 * Creates the command line from a single line and parse it by spaces
+	 * @param command
+	 * @return
+	 */
+	public ProcessHelper setSingleLineCommand(String command) {
+		if (command == null || command.trim().isEmpty()) {
+			throw new IllegalArgumentException("single line command cannot be null or empty");
+		}
+		commandLine = CommandLine.parse(command);
+		commandProvided = true;
 		return this;
 	}
 	
@@ -116,6 +138,9 @@ public class ProcessHelper {
 	 * @throws Exception
 	 */
 	public void execute() throws Exception {
+		if (commandProvided == false) {
+			throw new Exception("No command was set!");
+		}
 		File fwd = new File(workDir);
 		if (fwd.exists() == false) {
 			fwd.mkdirs();
@@ -127,12 +152,13 @@ public class ProcessHelper {
 				.setExecuteStreamHandler(streamProvider)
 				.setWorkingDirectory(fwd)
 				.get();
+		executor.setExitValue(defaultOkExitCode);
 		if (maxProcessRuntimeSec > 0) {
 			ExecuteWatchdog watchdog = ExecuteWatchdog.builder().setTimeout(Duration.ofSeconds(maxProcessRuntimeSec)).get();
 			executor.setWatchdog(watchdog);
 		}
 		// the streams will be set to the streamProvider inside the execute method.
-		// once the process is started and the streams are available the running state is set
+		// once the process is started and the streams are available the running state is set#
 		try {
 			executor.execute(commandLine, environmentMap, resultHandler);
 		} catch (Exception e) {
@@ -142,6 +168,8 @@ public class ProcessHelper {
 		while (true) {
 			if (streamProvider.isRunning()) {
 				break;
+			} else if (resultHandler.hasResult() && resultHandler.getException() != null) {
+				throw new Exception("Start of process: " + commandLine.toString() + " failed: " + resultHandler.getException().getMessage(), resultHandler.getException());
 			} else {
 				Thread.sleep(10l);
 			}
@@ -161,13 +189,29 @@ public class ProcessHelper {
 						line = reader.readLine();
 						if (line != null) {
 							countStdLines++;
-							stdQueue.add(line);
+							if (provideAllContentAtOnce) {
+								if (stdAllContent == null) {
+									stdAllContent = new StringBuilder();
+								}
+								stdAllContent.append(line);
+								stdAllContent.append("\n");
+							} else {
+								stdQueue.add(line);
+							}
+							if (redirectOutputToConsole) {
+								System.out.println(line);
+							}
 						}
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
 					}
 				} while (line != null);
 				stdQueue.add(endMarker); // to notify about the end
+				try {
+					reader.close();
+				} catch (IOException e) {
+					// ignore
+				}
 			}
 			
 		};
@@ -182,13 +226,45 @@ public class ProcessHelper {
 						line = reader.readLine();
 						if (line != null) {
 							countErrLines++;
-							errQueue.add(line);
+							if (provideAllContentAtOnce) {
+								if (sendErrOutputToStdOut) {
+									if (stdAllContent == null) {
+										stdAllContent = new StringBuilder();
+									}
+									stdAllContent.append(line);
+									stdAllContent.append("\n");
+								} else {
+									if (errAllContent == null) {
+										errAllContent = new StringBuilder();
+									}
+									errAllContent.append(line);
+									errAllContent.append("\n");
+								}
+							} else {
+								if (sendErrOutputToStdOut) {
+									stdQueue.add(line);
+								} else {
+									errQueue.add(line);
+								}
+							}
+							if (redirectOutputToConsole) {
+								if (sendErrOutputToStdOut) {
+									System.out.println(line);
+								} else {
+									System.err.println(line);
+								}
+							}
 						}
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
 					}
 				} while (line != null);
 				errQueue.add(endMarker); // to notify about the end
+				try {
+					reader.close();
+				} catch (IOException e) {
+					// ignore
+				}
 			}
 			
 		};
@@ -220,6 +296,13 @@ public class ProcessHelper {
 		return stdStreamIsRunning || errStreamIsRunning;
 	}
 	
+	public boolean killed() {
+		if (executor.getWatchdog() != null) {
+			return executor.getWatchdog().killedProcess();
+		}
+		return false;
+	}
+	
 	/**
 	 * Because next checks for both channels, this method checks id the standard output is available.
 	 * @return true if stdout is available
@@ -241,14 +324,14 @@ public class ProcessHelper {
 	/**
 	 * @return the current standard output line
 	 */
-	public String getStdOutLine() {
+	public String getStdCurrentOutLine() {
 		return stdLine;
 	}
 	
 	/**
 	 * @return the current error output line
 	 */
-	public String getErrorOutLine() {
+	public String getErrCurrentOutLine() {
 		return errorLine;
 	}
 
@@ -277,6 +360,10 @@ public class ProcessHelper {
 		resultHandler.waitFor();
 		return resultHandler.getExitValue();
 	}
+	
+	public boolean successful() throws InterruptedException {
+		return (defaultOkExitCode == getExitCode()) && killed() == false;
+	}
 
 	public int getCountReceivedStdLines() {
 		return countStdLines;
@@ -296,9 +383,74 @@ public class ProcessHelper {
 	 */
 	public ProcessHelper setMaxProcessRuntimeSec(Integer maxProcessRuntimeSec) {
 		if (maxProcessRuntimeSec != null) {
-			this.maxProcessRuntimeSec = maxProcessRuntimeSec.intValue();
+			this.maxProcessRuntimeSec = maxProcessRuntimeSec;
 		}
 		return this;
+	}
+
+	public boolean isProvideAllContentAtOnce() {
+		return provideAllContentAtOnce;
+	}
+
+	/**
+	 * if true the content of output will be kept in memory and provided at once
+	 * Take care this can lead to memory leaks.
+	 * @param provideAllContentAtOnce
+	 * @return
+	 */
+	public ProcessHelper setProvideAllContentAtOnce(Boolean provideAllContentAtOnce) {
+		if (provideAllContentAtOnce != null) {
+			this.provideAllContentAtOnce = provideAllContentAtOnce;
+		}
+		return this;
+	}
+	
+	public String getStdOutTextFull() {
+		if (stdAllContent != null) {
+			return stdAllContent.toString();
+		} else {
+			return null;
+		}
+	}
+
+	public String getErrOutTextFull() {
+		if (errAllContent != null) {
+			return errAllContent.toString();
+		} else {
+			return null;
+		}
+	}
+
+	public boolean isRedirectOutputToConsole() {
+		return redirectOutputToConsole;
+	}
+
+	/**
+	 * set true to send the output also to the console.
+	 */
+	public ProcessHelper setRedirectOutputToConsole(Boolean redirectOutputToConsole) {
+		if (redirectOutputToConsole != null) {
+			this.redirectOutputToConsole = redirectOutputToConsole;
+		}
+		return this;
+	}
+
+	public boolean isSendErrOutputToStdOut() {
+		return sendErrOutputToStdOut;
+	}
+
+	public void setSendErrOutputToStdOut(boolean sendErrOutputToStdOut) {
+		this.sendErrOutputToStdOut = sendErrOutputToStdOut;
+	}
+
+	public int getDefaultOkExitCode() {
+		return defaultOkExitCode;
+	}
+
+	public void setDefaultOkExitCode(Integer defaultOkExitCode) {
+		if (defaultOkExitCode != null) {
+			this.defaultOkExitCode = defaultOkExitCode;
+		}
 	}
 
 }

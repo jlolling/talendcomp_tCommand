@@ -1,0 +1,111 @@
+<%@ jet
+	imports="
+		org.talend.core.model.process.INode 
+		org.talend.core.model.process.ElementParameterParser
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.IMetadataTable 
+    	org.talend.core.model.metadata.IMetadataColumn 
+    	org.talend.core.model.process.IConnection
+    	org.talend.core.model.process.IConnectionCategory
+    	java.util.List
+    	java.util.Map
+	"
+%>
+
+<%
+	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+	INode node = (INode)codeGenArgument.getArgument();
+	String cid = node.getUniqueName();
+	String singleCmdLine = ElementParameterParser.getValue(node, "__COMMAND__");
+	String outputAction  = ElementParameterParser.getValue(node, "__OUTPUT__");
+	String maxRuntime  = ElementParameterParser.getValue(node, "__MAX_RUNTIME__");
+	if (maxRuntime == null || maxRuntime.trim().isEmpty()) {
+		maxRuntime = "null";
+	}
+	String exitCode  = ElementParameterParser.getValue(node, "__OK_EXIT_CODE__");
+	if (exitCode == null || exitCode.trim().isEmpty()) {
+		exitCode = "null";
+	}
+	boolean setWorkdir = ("true").equals(ElementParameterParser.getValue(node, "__ROOTDIR__"));
+	String workDir  = ElementParameterParser.getValue(node, "__DIRECTORY__");
+	if (workDir == null || workDir.trim().isEmpty()) {
+		workDir = "null";
+	}
+	List<Map<String, String>> environmentMap = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,"__PARAMS__");
+	boolean useSingleCmdLine = ("true").equals(ElementParameterParser.getValue(node, "__USE_SINGLE_COMMAND__"));
+	boolean useCommandArray = ("true").equals(ElementParameterParser.getValue(node, "__USE_ARRAY_COMMAND__"));
+	boolean sendErrToStdOut = ("true").equals(ElementParameterParser.getValue(node, "__SEND_ERR_TO_STD_OUT__"));
+	boolean sendToConsole = ("true").equals(ElementParameterParser.getValue(node, "__SEND_ERR_TO_STD_OUT__"));
+	boolean provideOutputAtOnce = ("true").equals(ElementParameterParser.getValue(node, "__SEND_ERR_TO_STD_OUT__"));
+	List<Map<String,String>> commandArray = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,"__ARRAY_COMMAND__");
+    List<? extends IConnection> connsStdOut = node.getOutgoingConnections("STD_OUT");
+    List<? extends IConnection> connsErrOut = node.getOutgoingConnections("ERR_OUT");
+    String connStdOutName = null;
+    String connErrOutName = null;
+    if (connsStdOut != null && connsStdOut.size() > 0) {
+    	IConnection connTemp = connsStdOut.get(0);
+    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
+    		connStdOutName = connTemp.getName();
+    	}
+    }
+    if (connsErrOut != null && connsErrOut.size() > 0) {
+    	IConnection connTemp = connsErrOut.get(0);
+    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
+    		connErrOutName = connTemp.getName();
+    	}
+    }
+%>
+	de.jlo.talendcomp.command.ProcessHelper <%=cid%> = new de.jlo.talendcomp.command.ProcessHelper();
+	// setup the command
+<%  if (useSingleCmdLine) { %>
+	<%=cid%>.setSingleLineCommand(<%=singleCmdLine%>);
+<%	} else if (commandArray != null && commandArray.size() > 0) {
+		for (Map<String,String> oneMap : commandArray) {
+			String line = oneMap.get("VALUE");
+			if (line != null && line.trim().isEmpty() == false) { %>
+	<%=cid%>.addToCommandLine(<%=line%>);
+<%          }
+		}
+	} %>
+	<%=cid%>.setMaxProcessRuntimeSec(<%=maxRuntime%>);
+	<%=cid%>.setDefaultOkExitCode(<%=exitCode%>);
+	<%=cid%>.setWorkDir(<%=workDir%>);
+	<%=cid%>.setRedirectOutputToConsole(<%=sendToConsole%>);
+	<%=cid%>.setSendErrOutputToStdOut(<%=sendErrToStdOut%>);
+<%  if ("RETRIEVE_OUTPUT".equals(outputAction)) { %>
+	<%=cid%>.setProvideAllContentAtOnce(true);
+<%  } else { %>
+	<%=cid%>.setProvideAllContentAtOnce(false);
+<%  } %>
+	// setup environment
+<%	if (environmentMap != null && environmentMap.size() > 0) {
+		for (Map<String, String> oneMap : environmentMap) {
+			String varName = oneMap.get("NAME");
+			String varValue = oneMap.get("VALUE");
+			if (varName != null && varName.trim().isEmpty() == false && varValue != null && varValue.trim().isEmpty() == false) { %>
+	<%=cid%>.setEnvironmentVariable(<%=varName%>, <%=varValue%>);
+<%			}
+		}
+	} %>
+	<%=cid%>.execute();
+	int countStdLines_<%=cid%> = 0;
+	int countErrLines_<%=cid%> = 0;
+	while (<%=cid%>.next()) {
+<%	if (connStdOutName != null) { %>
+		if (<%=cid%>.hasCurrentStdLine()) {
+			<%=connStdOutName%> = new <%=connStdOutName%>Struct();
+			<%=connStdOutName%>.outputline = <%=cid%>.getStdCurrentOutLine();
+			countStdLines_<%=cid%>++;
+		} else {
+			<%=connStdOutName%> = null;
+		}
+<%	} %>
+<%	if (connErrOutName != null) { %>
+		if (<%=cid%>.hasCurrentErrLine()) {
+			<%=connErrOutName%> = new <%=connErrOutName%>Struct();
+			<%=connErrOutName%>.outputline = <%=cid%>.getErrCurrentOutLine();
+			countErrLines_<%=cid%>++;
+		} else {
+			<%=connErrOutName%> = null;
+		}
+<%	} %>

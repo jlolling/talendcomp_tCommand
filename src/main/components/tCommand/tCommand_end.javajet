@@ -1,0 +1,37 @@
+<%@ jet
+	imports="
+		org.talend.core.model.process.INode 
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.process.ElementParameterParser
+	"
+%>
+
+<%
+	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+	INode node = (INode)codeGenArgument.getArgument();
+	String cid = node.getUniqueName();
+	String outputAction = ElementParameterParser.getValue(node, "__OUTPUT__");
+	boolean dieOnError = "true".equals(ElementParameterParser.getValue(node, "__DIE_ON_ERROR__"));
+%>
+	} // close while from output connection of <%=cid%> 
+	int exitCode_<%=cid%> = <%=cid%>.getExitCode();
+	log.info("Process started from <%=cid%> finished with exit code: " + exitCode_<%=cid%>);
+	globalMap.put("<%=cid%>_EXIT_VALUE", exitCode_<%=cid%>);
+	globalMap.put("<%=cid%>_KILLED", <%=cid%>.killed());
+	globalMap.put("<%=cid%>_SUCCESSFUL", <%=cid%>.successful());
+<%  if (dieOnError) { %>
+	if (<%=cid%>.successful() == false) {
+		if (<%=cid%>.killed()) {
+			throw new Exception("Process was killed. Exit code: " + exitCode_<%=cid%>);
+		} else {
+			throw new Exception("Process failed with exit code: " + exitCode_<%=cid%>);
+		}
+	}
+<%  } %>
+	globalMap.put("<%=cid%>_STDOUT_NB_LINE", countStdLines_<%=cid%>);
+	globalMap.put("<%=cid%>_ERROUT_NB_LINE", countErrLines_<%=cid%>);
+<%  if ("RETRIEVE_OUTPUT".equals(outputAction)) { %>
+	globalMap.put("<%=cid%>_OUTPUT", <%=cid%>.getStdOutTextFull());
+	globalMap.put("<%=cid%>_ERROROUTPUT", <%=cid%>.getErrOutTextFull());
+<%  } %>
+	
