@@ -2,6 +2,12 @@ package de.jlo.talendcomp.command;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+
+import org.apache.commons.exec.OS;
 import org.junit.Test;
 
 public class TestProcessHelper {
@@ -13,7 +19,7 @@ public class TestProcessHelper {
 		h.addToCommandLine("java");
 		h.addToCommandLine("de.jlo.talendcomp.command.TestProcess");
 		h.addToCommandLine(lines);
-		h.setWorkDir("C:\\development\\eclipse-workspace\\talendcomp_tCommand\\target\\test-classes");
+		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
 		int countStd = 0;
 		int countErr = 0;
@@ -91,7 +97,7 @@ public class TestProcessHelper {
 		h.addToCommandLine("de.jlo.talendcomp.command.TestProcess");
 		h.addToCommandLine(lines);
 		h.setSendErrOutputToStdOut(true);
-		h.setWorkDir("C:\\development\\eclipse-workspace\\talendcomp_tCommand\\target\\test-classes");
+		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
 		int countStd = 0;
 		int countErr = 0;
@@ -125,7 +131,7 @@ public class TestProcessHelper {
 		h.addToCommandLine(lines);
 		h.setSendErrOutputToStdOut(true);
 		h.setMaxProcessRuntimeSec(1);
-		h.setWorkDir("C:\\development\\eclipse-workspace\\talendcomp_tCommand\\target\\test-classes");
+		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
 		System.out.println("TEST: Process started");
 		Thread.sleep(1l); // simulate the delay to make the resources available working with the outputs
@@ -154,9 +160,9 @@ public class TestProcessHelper {
 		h.addToCommandLine(lines);
 		h.setSendErrOutputToStdOut(true);
 		h.setDefaultOkExitCode(2);
-		h.setWorkDir("C:\\development\\eclipse-workspace\\talendcomp_tCommand\\target\\test-classes");
+		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
-		System.out.println("TEST: Process started");
+		System.out.println("TEST: Process started. user.dir=" + System.getProperty("user.dir"));
 		while (h.next()) {
 			if (h.hasCurrentStdLine()) {
 				System.out.println("STD: " + h.getStdCurrentOutLine());
@@ -179,7 +185,7 @@ public class TestProcessHelper {
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
 		h.addToCommandLine("de.jlo.talendcomp.command.TestProcessSilent");
-		h.setWorkDir("C:\\development\\eclipse-workspace\\talendcomp_tCommand\\target\\test-classes");
+		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
 		int countStd = 0;
 		int countErr = 0;
@@ -202,6 +208,46 @@ public class TestProcessHelper {
 		int exitCode = h.getExitCode();
 		System.out.println("TEST: Exit code: " + exitCode);
 		assertEquals("Exit code wrong", 2, exitCode);
+	}
+	
+	@Test
+	public void testHandoverParameters() throws Exception, IOException {
+		String filePath = null;
+		if (OS.isFamilyUnix()) {
+			String script = "while [ $# -gt 0 ]\n"
+					+ "do\n"
+					+ "    echo $1\n"
+					+ "    shift\n"
+					+ "done";
+			filePath = "/tmp/test.sh";
+			Files.write(java.nio.file.Paths.get(filePath), script.getBytes("UTF-8"), StandardOpenOption.CREATE);
+			Files.setPosixFilePermissions(java.nio.file.Paths.get(filePath),  java.nio.file.attribute.PosixFilePermissions.fromString("rwxr--r--"));
+		} else {
+			String script = ":Loop\r\n"
+					+ "IF [%1]==[] GOTO Continue\r\n"
+					+ "    @ECHO %1\r\n"
+					+ "SHIFT\r\n"
+					+ "GOTO Loop\r\n"
+					+ ":Continue";
+			filePath = "c:\\temp\\test.cmd";
+			Files.write(java.nio.file.Paths.get(filePath), script.getBytes("UTF-8"), StandardOpenOption.CREATE);
+		}
+		ProcessHelper h = new ProcessHelper();
+		h.addToCommandLine(filePath);
+		h.addToCommandLine("\"param_key1=param_value1\"");
+		h.addToCommandLine("\"param_key2=param_value 2\"");
+		h.execute();
+		int countStd = 0;
+		while (h.next()) {
+			if (h.hasCurrentStdLine()) {
+				String line = h.getStdCurrentOutLine();
+				if (line.startsWith("\"param_")) {
+					System.out.println(line);
+					countStd++;
+				}
+			}
+		}
+		assertEquals("wrong number arguments", 2, countStd);
 	}
 
 }

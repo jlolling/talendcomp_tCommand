@@ -76,7 +76,7 @@ public class ProcessHelper {
 				commandLine = new CommandLine(String.valueOf(command));
 				commandProvided = true;
 			} else {
-				commandLine.addArgument(String.valueOf(command));
+				commandLine.addArgument(String.valueOf(command), false);
 			}
 		}
 		return this;
