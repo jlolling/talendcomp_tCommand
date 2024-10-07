@@ -141,12 +141,15 @@ public class ProcessHelper {
 		if (commandProvided == false) {
 			throw new Exception("No command was set!");
 		}
-		File fwd = new File(workDir);
-		if (fwd.exists() == false) {
-			fwd.mkdirs();
-		}
-		if (fwd.exists() == false) {
-			throw new Exception("work-dir: " + fwd.getAbsolutePath() + " does not exist and cannot be created");
+		File fwd = null;
+		if (workDir != null && workDir.trim().isEmpty() == false) {
+			fwd = new File(workDir);
+			if (fwd.exists() == false) {
+				fwd.mkdirs();
+			}
+			if (fwd.exists() == false) {
+				throw new Exception("work-dir: " + fwd.getAbsolutePath() + " does not exist and cannot be created");
+			}
 		}
 		executor = DefaultExecutor.builder()
 				.setExecuteStreamHandler(streamProvider)
@@ -205,7 +208,7 @@ public class ProcessHelper {
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
 					}
-				} while (line != null);
+				} while (line != null && streamProvider.isRunning());
 				stdQueue.add(endMarker); // to notify about the end
 				try {
 					reader.close();
@@ -258,7 +261,7 @@ public class ProcessHelper {
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
 					}
-				} while (line != null);
+				} while (line != null && streamProvider.isRunning());
 				errQueue.add(endMarker); // to notify about the end
 				try {
 					reader.close();

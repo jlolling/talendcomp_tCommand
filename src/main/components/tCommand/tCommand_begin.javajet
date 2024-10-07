@@ -28,7 +28,7 @@
 	}
 	boolean setWorkdir = ("true").equals(ElementParameterParser.getValue(node, "__ROOTDIR__"));
 	String workDir  = ElementParameterParser.getValue(node, "__DIRECTORY__");
-	if (workDir == null || workDir.trim().isEmpty()) {
+	if (workDir == null || workDir.trim().isEmpty() || setWorkdir == false) {
 		workDir = "null";
 	}
 	List<Map<String, String>> environmentMap = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,"__PARAMS__");
