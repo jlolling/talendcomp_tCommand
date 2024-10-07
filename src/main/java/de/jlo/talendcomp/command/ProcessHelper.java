@@ -205,7 +205,7 @@ public class ProcessHelper {
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
 					}
-				} while (line != null);
+				} while (line != null && streamProvider.isRunning());
 				stdQueue.add(endMarker); // to notify about the end
 				try {
 					reader.close();
@@ -258,7 +258,7 @@ public class ProcessHelper {
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
 					}
-				} while (line != null);
+				} while (line != null && streamProvider.isRunning());
 				errQueue.add(endMarker); // to notify about the end
 				try {
 					reader.close();

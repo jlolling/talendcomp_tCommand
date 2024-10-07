@@ -181,7 +181,7 @@ public class TestProcessHelper {
 	}
 
 	@Test
-	public void testProcessHelperSilent() throws Exception {
+	public void testProcessHelperSilent1() throws Exception {
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
 		h.addToCommandLine("de.jlo.talendcomp.command.TestProcessSilent");
@@ -207,9 +207,40 @@ public class TestProcessHelper {
 		assertEquals("Err Out line count wrong", 0, countErr);
 		int exitCode = h.getExitCode();
 		System.out.println("TEST: Exit code: " + exitCode);
-		assertEquals("Exit code wrong", 2, exitCode);
+		assertEquals("Exit code wrong", 0, exitCode);
 	}
 	
+	@Test
+	public void testProcessHelperSilent2() throws Exception {
+		ProcessHelper h = new ProcessHelper();
+		h.addToCommandLine("java");
+		h.addToCommandLine("de.jlo.talendcomp.command.TestProcessSilent");
+		h.addToCommandLine(5000);
+		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
+		h.execute();
+		int countStd = 0;
+		int countErr = 0;
+		System.out.println("TEST: Process started");
+		Thread.sleep(1l); // simulate the delay to make the resources available working with the outputs
+		while (h.next()) {
+			if (h.hasCurrentStdLine()) {
+				System.out.println("STD: " + h.getStdCurrentOutLine());
+				countStd++;
+			}
+			if (h.hasCurrentErrLine()) {
+				System.out.println("ERR: " + h.getErrCurrentOutLine());
+				countErr++;
+			}
+		}
+		System.out.println("TEST: Process ended");
+		System.out.println("TEST: count std lines received: " + h.getCountReceivedStdLines() + " count err lines received: " + h.getCountReceivedErrLines());
+		assertEquals("Std Out line count wrong", 0, countStd);
+		assertEquals("Err Out line count wrong", 0, countErr);
+		int exitCode = h.getExitCode();
+		System.out.println("TEST: Exit code: " + exitCode);
+		assertEquals("Exit code wrong", 0, exitCode);
+	}
+
 	@Test
 	public void testHandoverParameters() throws Exception, IOException {
 		String filePath = null;
