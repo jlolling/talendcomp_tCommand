@@ -263,12 +263,14 @@ public class TestProcessHelper {
 			filePath = "c:\\temp\\test.cmd";
 			Files.write(java.nio.file.Paths.get(filePath), script.getBytes("UTF-8"), StandardOpenOption.CREATE);
 		}
+		System.out.println("Start Process...");
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine(filePath);
 		h.addToCommandLine("\"param_key1=param_value1\"");
 		h.addToCommandLine("\"param_key2=param_value 2\"");
 		h.execute();
 		int countStd = 0;
+		System.out.println("Get output...");
 		while (h.next()) {
 			if (h.hasCurrentStdLine()) {
 				String line = h.getStdCurrentOutLine();
