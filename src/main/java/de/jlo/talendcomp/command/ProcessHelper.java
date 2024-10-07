@@ -37,7 +37,7 @@ public class ProcessHelper {
 	private final Map<String, String> placeHolderMap = new HashMap<String, String>();
 	private String workDir = null;
 	private DefaultExecutor executor = null;
-	private final ProcessStreamProvider streamProvider = new ProcessStreamProvider();
+	private final ProcessStreamProvider streamProvider;
 	private String stdLine = null;
 	private String errorLine = null;
 	private final DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
@@ -58,10 +58,13 @@ public class ProcessHelper {
 	private boolean sendErrOutputToStdOut = false;
 	private boolean commandProvided = false;
 	private int defaultOkExitCode = 0;
+	private boolean stdPumpThreadFinished = false;
+	private boolean errPumpThreadFinished = false;
 	
 	public ProcessHelper() {
 		environmentMap = System.getenv();
 		workDir = System.getProperty("user.dir");
+		streamProvider = new ProcessStreamProvider(this);
 	}
 	
 	/**
@@ -169,7 +172,7 @@ public class ProcessHelper {
 		}
 		// wait for the streams started
 		while (true) {
-			if (streamProvider.isRunning()) {
+			if (streamProvider.isStarted()) {
 				break;
 			} else if (resultHandler.hasResult() && resultHandler.getException() != null) {
 				throw new Exception("Start of process: " + commandLine.toString() + " failed: " + resultHandler.getException().getMessage(), resultHandler.getException());
@@ -208,13 +211,14 @@ public class ProcessHelper {
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
 					}
-				} while (line != null && streamProvider.isRunning());
-				stdQueue.add(endMarker); // to notify about the end
+				} while (line != null);
 				try {
 					reader.close();
 				} catch (IOException e) {
 					// ignore
 				}
+				stdQueue.add(endMarker); // to notify about the end
+				stdPumpThreadFinished = true;
 			}
 			
 		};
@@ -261,18 +265,23 @@ public class ProcessHelper {
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
 					}
-				} while (line != null && streamProvider.isRunning());
-				errQueue.add(endMarker); // to notify about the end
+				} while (line != null);
 				try {
 					reader.close();
 				} catch (IOException e) {
 					// ignore
 				}
+				errQueue.add(endMarker); // to notify about the end
+				errPumpThreadFinished = true;
 			}
 			
 		};
 		stdStreamer.start();
 		errStreamer.start();
+	}
+	
+	public boolean isStreamPumpThreadsFinished() {
+		return stdPumpThreadFinished && errPumpThreadFinished;
 	}
 	
 	/**

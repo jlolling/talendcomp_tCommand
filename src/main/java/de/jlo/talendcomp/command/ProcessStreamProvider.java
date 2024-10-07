@@ -31,7 +31,13 @@ public class ProcessStreamProvider implements ExecuteStreamHandler {
 	private BufferedReader errorOutReader = null;
 	private OutputStream inputOutputStream = null;
 	private BufferedReader standardOutReader = null;
+	private boolean started = false;
 	private boolean running = false;
+	private ProcessHelper processHelper = null;
+	
+	public ProcessStreamProvider(ProcessHelper p) {
+		processHelper = p;
+	}
 	
 	@Override
 	public void setProcessErrorStream(InputStream inputStream) throws IOException {
@@ -51,15 +57,18 @@ public class ProcessStreamProvider implements ExecuteStreamHandler {
 	@Override
 	public void start() throws IOException {
 		running = true;
+		started = true;
 	}
 
 	@Override
-	public void stop() throws IOException {
-		if (standardOutReader != null) {
-			standardOutReader.close();
-		}
-		if (errorOutReader != null) {
-			errorOutReader.close();
+	public void stop() {
+		// wait for the end of the stream processing
+		while (processHelper.isStreamPumpThreadsFinished() == false) {
+			try {
+				Thread.sleep(10l);
+			} catch (InterruptedException e) {
+				//ignore
+			}
 		}
 		running = false;
 	}
@@ -94,6 +103,10 @@ public class ProcessStreamProvider implements ExecuteStreamHandler {
 	 */
 	public boolean isRunning() {
 		return running;
+	}
+
+	public boolean isStarted() {
+		return started;
 	}
 
 }
