@@ -141,12 +141,15 @@ public class ProcessHelper {
 		if (commandProvided == false) {
 			throw new Exception("No command was set!");
 		}
-		File fwd = new File(workDir);
-		if (fwd.exists() == false) {
-			fwd.mkdirs();
-		}
-		if (fwd.exists() == false) {
-			throw new Exception("work-dir: " + fwd.getAbsolutePath() + " does not exist and cannot be created");
+		File fwd = null;
+		if (workDir != null && workDir.trim().isEmpty() == false) {
+			fwd = new File(workDir);
+			if (fwd.exists() == false) {
+				fwd.mkdirs();
+			}
+			if (fwd.exists() == false) {
+				throw new Exception("work-dir: " + fwd.getAbsolutePath() + " does not exist and cannot be created");
+			}
 		}
 		executor = DefaultExecutor.builder()
 				.setExecuteStreamHandler(streamProvider)
