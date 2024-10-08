@@ -35,8 +35,7 @@
 	boolean useSingleCmdLine = ("true").equals(ElementParameterParser.getValue(node, "__USE_SINGLE_COMMAND__"));
 	boolean useCommandArray = ("true").equals(ElementParameterParser.getValue(node, "__USE_ARRAY_COMMAND__"));
 	boolean sendErrToStdOut = ("true").equals(ElementParameterParser.getValue(node, "__SEND_ERR_TO_STD_OUT__"));
-	boolean sendToConsole = ("true").equals(ElementParameterParser.getValue(node, "__SEND_ERR_TO_STD_OUT__"));
-	boolean provideOutputAtOnce = ("true").equals(ElementParameterParser.getValue(node, "__SEND_ERR_TO_STD_OUT__"));
+	boolean sendToConsole = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_CONSOLE__"));
 	List<Map<String,String>> commandArray = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,"__ARRAY_COMMAND__");
     List<? extends IConnection> connsStdOut = node.getOutgoingConnections("STD_OUT");
     List<? extends IConnection> connsErrOut = node.getOutgoingConnections("ERR_OUT");
