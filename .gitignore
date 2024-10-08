@@ -6,3 +6,5 @@
 .settings/org.eclipse.core.resources.prefs
 
 *.prefs
+
+.DS_Store
