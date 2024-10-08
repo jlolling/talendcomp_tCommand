@@ -47,8 +47,8 @@ public class ProcessHelper {
 	private final String endMarker = "PROCESS@HELPER$STREAM%END";
 	private int countStdLines = 0;
 	private int countErrLines = 0;
-	private boolean stdStreamIsRunning = true;
-	private boolean errStreamIsRunning = true;
+	private boolean stdStreamQueueHasData = true;
+	private boolean errStreamQueueHasData = true;
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	private int maxProcessRuntimeSec = 0;
 	private StringBuilder stdAllContent = null;
@@ -290,22 +290,22 @@ public class ProcessHelper {
 	 */
 	public boolean next() {
 		// fetch a standard out line
-		if (stdStreamIsRunning) {
+		if (stdStreamQueueHasData) {
 			stdLine = stdQueue.poll(); // returns null if the queue is empty
 			if (endMarker.equals(stdLine)) {
-				stdStreamIsRunning = false;
+				stdStreamQueueHasData = false;
 				stdLine = null;
 			}
 		}
 		// fetch a error out line
-		if (errStreamIsRunning) {
+		if (errStreamQueueHasData) {
 			errorLine = errQueue.poll(); // returns null if the queue is empty
 			if (endMarker.equals(errorLine)) {
-				errStreamIsRunning = false;
+				errStreamQueueHasData = false;
 				errorLine = null;
 			}
 		}
-		return stdStreamIsRunning || errStreamIsRunning;
+		return stdStreamQueueHasData || errStreamQueueHasData;
 	}
 	
 	public boolean killed() {

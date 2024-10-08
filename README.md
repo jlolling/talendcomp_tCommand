@@ -14,3 +14,4 @@ Some differences:
 * Additional you have check options for providing the output also to the console
 * There is an option to join the error output to the standard output.
 * New setting for maximum runtime - to kill the process if max duration reached
+* New setting for the expected exit code for successful finished process
