@@ -8,3 +8,9 @@ This new component tCommand was developed because the existing component tSystem
 * Provides 2 output flows (standard and error)
 * Can redirect the error flow to the standard flow
   
+The settings are very similar to tSystem.
+Some differences:
+* The target for the output is one setting for standard and error output
+* Additional you have check options for providing the output also to the console
+* There is an option to join the error output to the standard output.
+* New setting for maximum runtime - to kill the process if max duration reached
