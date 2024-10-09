@@ -21,3 +21,6 @@ Some differences:
 
 ## Productive Job Design
 ![Productive job component settings](https://github.com/jlolling/talendcomp_tCommand/blob/master/doc/tCommand_real_job_design.png)
+
+## Download the ready to use component
+![Download the latest release here](https://github.com/jlolling/talendcomp_tCommand/releases)
