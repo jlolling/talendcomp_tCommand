@@ -50,7 +50,7 @@ public class TestProcessHelper {
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
 		h.addToCommandLine("de.jlo.talendcomp.command.TestProcessEnv");
-		h.setEnvironmentVariable("MY_VARIABLE", "DUMMY_VALUE");
+		h.setEnvironmentVariable("MY_VAR", "DUMMY");
 		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
 		System.out.println("TEST: Process started");
@@ -60,7 +60,7 @@ public class TestProcessHelper {
 			if (h.hasCurrentStdLine()) {
 				String s = h.getStdCurrentOutLine();
 				System.out.println(s);
-				if (expectedEnv.equals(expectedEnv)) {
+				if (expectedEnv.equals(s)) {
 					found = true;
 				}
 				
@@ -70,7 +70,7 @@ public class TestProcessHelper {
 		int exitCode = h.getExitCode();
 		System.out.println("TEST: Exit code: " + exitCode);
 		assertEquals("Exit code wrong", 0, exitCode);
-		assertTrue("Env varibale not found in output", found);
+		assertTrue("Env variable not found in output", found);
 	}
 	
 	@Test
