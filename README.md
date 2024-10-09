@@ -15,3 +15,9 @@ Some differences:
 * There is an option to join the error output to the standard output.
 * New setting for maximum runtime - to kill the process if max duration reached
 * New setting for the expected exit code for successful finished process
+
+## Demo Job Design
+![Demo job component settings](https://github.com/jlolling/talendcomp_tCommand/blob/master/doc/tCommand_single_commandline.png)
+
+## Productive Job Design
+![Productive job component settings](https://github.com/jlolling/talendcomp_tCommand/blob/master/doc/tCommand_real_job_design.png)
