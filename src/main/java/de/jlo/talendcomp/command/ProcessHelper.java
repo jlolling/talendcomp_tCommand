@@ -41,7 +41,7 @@ public class ProcessHelper {
 	private String stdLine = null;
 	private String errorLine = null;
 	private final DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-	private Map<String, String> environmentMap = null;
+	private Map<String, String> environmentMap = new HashMap<String, String>();
 	private final Queue<String> stdQueue = new ConcurrentLinkedQueue<String>();
 	private final Queue<String> errQueue = new ConcurrentLinkedQueue<String>();
 	private final String endMarker = "PROCESS@HELPER$STREAM%END";
@@ -62,7 +62,7 @@ public class ProcessHelper {
 	private boolean errPumpThreadFinished = false;
 	
 	public ProcessHelper() {
-		environmentMap = System.getenv();
+		environmentMap.putAll(System.getenv()); // do not use the env map directly because not modifiable
 		workDir = System.getProperty("user.dir");
 		streamProvider = new ProcessStreamProvider(this);
 	}
