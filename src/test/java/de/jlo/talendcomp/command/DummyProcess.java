@@ -1,6 +1,6 @@
 package de.jlo.talendcomp.command;
 
-public class TestProcess {
+public class DummyProcess {
 
 	public static void main(String[] args) {
 		System.out.println("Test process started");

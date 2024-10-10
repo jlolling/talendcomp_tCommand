@@ -2,7 +2,7 @@ package de.jlo.talendcomp.command;
 
 import java.util.Map;
 
-public class TestProcessEnv {
+public class DummyProcessEnv {
 
 	public static void main(String[] args) {
 		System.out.println("Test process started");

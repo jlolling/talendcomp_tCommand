@@ -1,6 +1,6 @@
 package de.jlo.talendcomp.command;
 
-public class TestProcessSilent {
+public class DummyProcessSilent {
 
 	public static void main(String[] args) {
 		long duration = 0l;

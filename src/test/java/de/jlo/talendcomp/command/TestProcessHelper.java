@@ -17,7 +17,7 @@ public class TestProcessHelper {
 		int lines = 20;
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
-		h.addToCommandLine("de.jlo.talendcomp.command.TestProcess");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcess");
 		h.addToCommandLine(lines);
 		h.setEnvironmentVariable("MY_VARIABLE", "DUMMY_VALUE");
 		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
@@ -49,7 +49,7 @@ public class TestProcessHelper {
 	public void testProcessHelperEnv() throws Exception {
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
-		h.addToCommandLine("de.jlo.talendcomp.command.TestProcessEnv");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcessEnv");
 		h.setEnvironmentVariable("MY_VAR", "DUMMY");
 		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
@@ -117,11 +117,37 @@ public class TestProcessHelper {
 	}
 
 	@Test
+	public void testProcessHelperPrintPath() throws Exception {
+		ProcessHelper h = new ProcessHelper();
+		h.setSendErrOutputToStdOut(true);
+		if (OS.isFamilyWindows()) {
+			h.setSingleLineCommand("cmd /c echo %PATH%");
+		} else {
+			h.addToCommandLine("bash -c \"echo $PATH\"");
+		}
+		h.execute();
+		int countStd = 0;
+		System.out.println("TEST: Process started");
+		while (h.next()) {
+			if (h.hasCurrentStdLine()) {
+				System.out.println(h.getStdCurrentOutLine());
+				countStd++;
+			}
+		}
+		System.out.println("TEST: Process ended");
+		System.out.println("TEST: count std lines received: " + h.getCountReceivedStdLines() + " count err lines received: " + h.getCountReceivedErrLines());
+		assertTrue("Std Out line count wrong", countStd > 0);
+		int exitCode = h.getExitCode();
+		System.out.println("TEST: Exit code: " + exitCode);
+		assertEquals("Exit code wrong", 0, exitCode);
+	}
+
+	@Test
 	public void testProcessHelperErrToStd() throws Exception {
 		int lines = 20;
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
-		h.addToCommandLine("de.jlo.talendcomp.command.TestProcess");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcess");
 		h.addToCommandLine(lines);
 		h.setSendErrOutputToStdOut(true);
 		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
@@ -154,7 +180,7 @@ public class TestProcessHelper {
 		int lines = 100;
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
-		h.addToCommandLine("de.jlo.talendcomp.command.TestProcess");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcess");
 		h.addToCommandLine(lines);
 		h.setSendErrOutputToStdOut(true);
 		h.setMaxProcessRuntimeSec(1);
@@ -183,7 +209,7 @@ public class TestProcessHelper {
 		int lines = 1;
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
-		h.addToCommandLine("de.jlo.talendcomp.command.TestProcess");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcess");
 		h.addToCommandLine(lines);
 		h.setSendErrOutputToStdOut(true);
 		h.setDefaultOkExitCode(2);
@@ -211,7 +237,7 @@ public class TestProcessHelper {
 	public void testProcessHelperSilent1() throws Exception {
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
-		h.addToCommandLine("de.jlo.talendcomp.command.TestProcessSilent");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcessSilent");
 		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
 		int countStd = 0;
@@ -241,7 +267,7 @@ public class TestProcessHelper {
 	public void testProcessHelperSilent2() throws Exception {
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");
-		h.addToCommandLine("de.jlo.talendcomp.command.TestProcessSilent");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcessSilent");
 		h.addToCommandLine(5000);
 		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
 		h.execute();
