@@ -60,6 +60,7 @@ public class ProcessHelper {
 	private int defaultOkExitCode = 0;
 	private boolean stdPumpThreadFinished = false;
 	private boolean errPumpThreadFinished = false;
+	private OutputListener listener = null;
 	
 	public ProcessHelper() {
 		environmentMap.putAll(System.getenv()); // do not use the env map directly because not modifiable
@@ -207,6 +208,9 @@ public class ProcessHelper {
 							if (redirectOutputToConsole) {
 								System.out.println(line);
 							}
+							if (listener != null) {
+								listener.info(line);
+							}
 						}
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
@@ -260,6 +264,9 @@ public class ProcessHelper {
 								} else {
 									System.err.println(line);
 								}
+							}
+							if (listener != null) {
+								listener.error(line);
 							}
 						}
 					} catch (IOException e) {
@@ -463,6 +470,14 @@ public class ProcessHelper {
 		if (defaultOkExitCode != null) {
 			this.defaultOkExitCode = defaultOkExitCode;
 		}
+	}
+
+	public OutputListener getListener() {
+		return listener;
+	}
+
+	public void setListener(OutputListener listener) {
+		this.listener = listener;
 	}
 
 }

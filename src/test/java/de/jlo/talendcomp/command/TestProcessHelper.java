@@ -46,6 +46,62 @@ public class TestProcessHelper {
 	}
 
 	@Test
+	public void testProcessHelperListener() throws Exception {
+		int lines = 20;
+		ProcessHelper h = new ProcessHelper();
+		h.addToCommandLine("java");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcess");
+		h.addToCommandLine(lines);
+		h.setEnvironmentVariable("MY_VARIABLE", "DUMMY_VALUE");
+		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
+		int countStd = 0;
+		int countErr = 0;
+		OutputListener l = new OutputListener() {
+			
+			private int countInfoLines = 0;
+			private int countErrorLines = 0;	
+			
+			@Override
+			public void info(String message) {
+				System.out.println("STD: " + message);
+				countInfoLines++;
+			}
+			
+			@Override
+			public void error(String message) {
+				System.out.println("ERR: " + message);
+				countErrorLines++;
+			}
+			
+			@Override
+			public int countInfoLines() {
+				return countInfoLines;
+			}
+			
+			@Override
+			public int countErrorLines() {
+				return countErrorLines;
+			}
+			
+		};
+		h.setListener(l);
+		h.execute();
+		System.out.println("TEST: Process started");
+		Thread.sleep(5000l); // simulate the delay to make the resources available working with the outputs
+		while (h.next()) {
+		}
+		countStd = l.countInfoLines();
+		countErr = l.countErrorLines();
+		System.out.println("TEST: Process ended");
+		System.out.println("TEST: count std lines received: " + h.getCountReceivedStdLines() + " count err lines received: " + h.getCountReceivedErrLines());
+		assertEquals("Std Out line count wrong", lines + 2, countStd);
+		assertEquals("Err Out line count wrong", lines, countErr);
+		int exitCode = h.getExitCode();
+		System.out.println("TEST: Exit code: " + exitCode);
+		assertEquals("Exit code wrong", 2, exitCode);
+	}
+
+	@Test
 	public void testProcessHelperEnv() throws Exception {
 		ProcessHelper h = new ProcessHelper();
 		h.addToCommandLine("java");

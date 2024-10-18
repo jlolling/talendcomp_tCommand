@@ -36,6 +36,7 @@
 	boolean useCommandArray = ("true").equals(ElementParameterParser.getValue(node, "__USE_ARRAY_COMMAND__"));
 	boolean sendErrToStdOut = ("true").equals(ElementParameterParser.getValue(node, "__SEND_ERR_TO_STD_OUT__"));
 	boolean sendToConsole = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_CONSOLE__"));
+	boolean sendToLog = ("true").equals(ElementParameterParser.getValue(node, "__SEND_TO_LOG__"));
 	List<Map<String,String>> commandArray = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node,"__ARRAY_COMMAND__");
     List<? extends IConnection> connsStdOut = node.getOutgoingConnections("STD_OUT");
     List<? extends IConnection> connsErrOut = node.getOutgoingConnections("ERR_OUT");
@@ -71,6 +72,31 @@
 	<%=cid%>.setWorkDir(<%=workDir%>);
 	<%=cid%>.setRedirectOutputToConsole(<%=sendToConsole%>);
 	<%=cid%>.setSendErrOutputToStdOut(<%=sendErrToStdOut%>);
+<%	if (sendToLog) { %>
+	<%=cid%>.setListener(new de.jlo.talendcomp.command.OutputListener() {
+		private int countInfoLines = 0;
+		private int countErrorLines = 0;	
+	
+		@Override
+		public void info(String message) {
+			log.info(message);
+			countInfoLines++;
+		}
+		@Override
+		public void error(String message) {
+			log.error(message);
+			countErrorLines++;
+		}
+		@Override
+		public int countInfoLines() {
+			return countInfoLines;
+		}
+		@Override
+		public int countErrorLines() {
+			return countErrorLines;
+		}
+	});
+<%	} %>
 <%  if ("RETRIEVE_OUTPUT".equals(outputAction)) { %>
 	<%=cid%>.setProvideAllContentAtOnce(true);
 <%  } else { %>
