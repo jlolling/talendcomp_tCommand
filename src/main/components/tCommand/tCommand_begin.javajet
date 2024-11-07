@@ -26,6 +26,10 @@
 	if (exitCode == null || exitCode.trim().isEmpty()) {
 		exitCode = "null";
 	}
+	String errorDetectionString  = ElementParameterParser.getValue(node, "__ERROR_DETECTION_STRING__");
+	if (errorDetectionString == null || errorDetectionString.trim().isEmpty()) {
+		errorDetectionString = "null";
+	}
 	boolean setWorkdir = ("true").equals(ElementParameterParser.getValue(node, "__ROOTDIR__"));
 	String workDir  = ElementParameterParser.getValue(node, "__DIRECTORY__");
 	if (workDir == null || workDir.trim().isEmpty() || setWorkdir == false) {
@@ -69,6 +73,7 @@
 	} %>
 	<%=cid%>.setMaxProcessRuntimeSec(<%=maxRuntime%>);
 	<%=cid%>.setDefaultOkExitCode(<%=exitCode%>);
+	<%=cid%>.setErrorDetectionString(<%=errorDetectionString%>);
 	<%=cid%>.setWorkDir(<%=workDir%>);
 	<%=cid%>.setRedirectOutputToConsole(<%=sendToConsole%>);
 	<%=cid%>.setSendErrOutputToStdOut(<%=sendErrToStdOut%>);

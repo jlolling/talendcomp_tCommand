@@ -24,7 +24,11 @@
 		if (<%=cid%>.killed()) {
 			throw new Exception("Process was killed. Exit code: " + exitCode_<%=cid%>);
 		} else {
-			throw new Exception("Process failed with exit code: " + exitCode_<%=cid%>);
+			if (<%=cid%>.isErrorDetectedByOutput()) {
+				throw new Exception("Process failed because error output detected: " + <%=cid%>.getErrorLineDetected());
+			} else {
+				throw new Exception("Process failed with exit code: " + exitCode_<%=cid%>);
+			}
 		}
 	}
 <%  } %>

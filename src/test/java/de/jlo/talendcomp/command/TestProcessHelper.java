@@ -130,6 +130,31 @@ public class TestProcessHelper {
 	}
 	
 	@Test
+	public void testProcessHelperErrorOutputDetect() throws Exception {
+		ProcessHelper h = new ProcessHelper();
+		h.addToCommandLine("java");
+		h.addToCommandLine("de.jlo.talendcomp.command.DummyProcess");
+		h.setEnvironmentVariable("MY_VAR", "DUMMY");
+		h.setWorkDir(Utils.getNativeFilePath(System.getProperty("user.dir") + "/target/test-classes"));
+		h.setErrorDetectionString("fail");
+		h.execute();
+		System.out.println("TEST: Process started");
+		while (h.next()) {
+			if (h.hasCurrentStdLine()) {
+				String s = h.getStdCurrentOutLine();
+				System.out.println(s);
+			}
+		}
+		System.out.println("TEST: Process ended");
+		int exitCode = h.getExitCode();
+		boolean errorDetected = h.isErrorDetectedByOutput();
+		System.out.println("TEST: Exit code: " + exitCode);
+		System.out.println("Error detected line: " + h.getErrorLineDetected());
+		assertEquals("Exit code wrong", 2, exitCode);
+		assertTrue("Error output not detected", errorDetected);
+	}
+
+	@Test
 	public void testProcessHelperWrongCommand() throws Exception {
 		ProcessHelper h = new ProcessHelper();
 		h.setSingleLineCommand("xxx /c echo HELLO");

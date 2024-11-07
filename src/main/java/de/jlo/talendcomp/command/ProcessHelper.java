@@ -61,6 +61,9 @@ public class ProcessHelper {
 	private boolean stdPumpThreadFinished = false;
 	private boolean errPumpThreadFinished = false;
 	private OutputListener listener = null;
+	private String errorDetectionString = null;
+	private boolean errorDetectedByOutput = false;
+	private String errorLineDetected = null;
 	
 	public ProcessHelper() {
 		environmentMap.putAll(System.getenv()); // do not use the env map directly because not modifiable
@@ -211,6 +214,10 @@ public class ProcessHelper {
 							if (listener != null) {
 								listener.info(line);
 							}
+							if (errorDetectionString != null && line.contains(errorDetectionString)) {
+								errorDetectedByOutput = true;
+								errorLineDetected = line;
+							}
 						}
 					} catch (IOException e) {
 						throw new RuntimeException(e.getMessage(), e);
@@ -267,6 +274,10 @@ public class ProcessHelper {
 							}
 							if (listener != null) {
 								listener.error(line);
+							}
+							if (errorDetectionString != null && line.contains(errorDetectionString)) {
+								errorDetectedByOutput = true;
+								errorLineDetected = line;
 							}
 						}
 					} catch (IOException e) {
@@ -381,7 +392,7 @@ public class ProcessHelper {
 	}
 	
 	public boolean successful() throws InterruptedException {
-		return (defaultOkExitCode == getExitCode()) && killed() == false;
+		return (defaultOkExitCode == getExitCode()) && killed() == false && errorDetectedByOutput == false;
 	}
 
 	public int getCountReceivedStdLines() {
@@ -478,6 +489,25 @@ public class ProcessHelper {
 
 	public void setListener(OutputListener listener) {
 		this.listener = listener;
+	}
+
+	public String getErrorDetectionString() {
+		return errorDetectionString;
+	}
+
+	public void setErrorDetectionString(String errorDetectionString) {
+		if (errorDetectionString != null) {
+			errorDetectionString = errorDetectionString.trim();
+		}
+		this.errorDetectionString = errorDetectionString;
+	}
+
+	public boolean isErrorDetectedByOutput() {
+		return errorDetectedByOutput;
+	}
+
+	public String getErrorLineDetected() {
+		return errorLineDetected;
 	}
 
 }
