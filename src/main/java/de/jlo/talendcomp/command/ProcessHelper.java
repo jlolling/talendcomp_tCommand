@@ -302,7 +302,11 @@ public class ProcessHelper {
 								}
 							}
 							if (listener != null) {
-								listener.error(line);
+								if (sendErrOutputToStdOut) {
+									listener.info(line);
+								} else {
+									listener.error(line);
+								}
 							}
 							if (errorDetectionString != null && line.contains(errorDetectionString)) {
 								errorDetectedByOutput = true;
