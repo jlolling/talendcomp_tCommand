@@ -20,23 +20,23 @@
 	globalMap.put("<%=cid%>_KILLED", <%=cid%>.killed());
 	globalMap.put("<%=cid%>_SUCCESSFUL", <%=cid%>.successful());
 	globalMap.put("<%=cid%>_ERROR_MESSAGE", <%=cid%>.getErrorMessage());
+	globalMap.put("<%=cid%>_STDOUT_NB_LINE", countStdLines_<%=cid%>);
+	globalMap.put("<%=cid%>_ERROUT_NB_LINE", countErrLines_<%=cid%>);
+<%  if ("RETRIEVE_OUTPUT".equals(outputAction)) { %>
+	globalMap.put("<%=cid%>_OUTPUT", <%=cid%>.getStdOutTextFull());
+	globalMap.put("<%=cid%>_ERROROUTPUT", <%=cid%>.getErrOutTextFull());
+<%  } %>
 <%  if (dieOnError) { %>
 	if (<%=cid%>.successful() == false) {
 		if (<%=cid%>.killed()) {
 			throw new Exception("Process was killed. Exit code: " + exitCode_<%=cid%>);
 		} else {
 			if (<%=cid%>.isErrorDetectedByOutput()) {
-				throw new Exception("Process failed because error output detected: " + <%=cid%>.getErrorLineDetected());
+				throw new Exception("Process failed because error output detected: " + <%=cid%>.getErrorMessage());
 			} else {
 				throw new Exception("Process failed with exit code: " + exitCode_<%=cid%>);
 			}
 		}
 	}
-<%  } %>
-	globalMap.put("<%=cid%>_STDOUT_NB_LINE", countStdLines_<%=cid%>);
-	globalMap.put("<%=cid%>_ERROUT_NB_LINE", countErrLines_<%=cid%>);
-<%  if ("RETRIEVE_OUTPUT".equals(outputAction)) { %>
-	globalMap.put("<%=cid%>_OUTPUT", <%=cid%>.getStdOutTextFull());
-	globalMap.put("<%=cid%>_ERROROUTPUT", <%=cid%>.getErrOutTextFull());
 <%  } %>
 	
