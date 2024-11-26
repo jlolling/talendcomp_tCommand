@@ -144,9 +144,9 @@ public class ProcessHelper {
 		if (true) {
 			errorMessage = message;
 			if (e != null) {
-				throwException(message, e);
+				throw new Exception(message, e);
 			} else {
-				throwException(message);
+				throw new Exception(message);
 			}
 		}
 	}
