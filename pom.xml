@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.jlo.talendcomp</groupId>
   <artifactId>jlo-talendcomp-command</artifactId>
-  <version>1.5</version>
+  <version>1.6</version>
   <name>tCommand</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -11,7 +11,7 @@
 	<dependency>
 	    <groupId>org.apache.commons</groupId>
 	    <artifactId>commons-exec</artifactId>
-	    <version>1.4.0</version>
+	    <version>1.5.0</version>
 	</dependency>  
 	<dependency>
 		<groupId>junit</groupId>
@@ -32,7 +32,7 @@
 			<plugin>
 				<groupId>de.cimt.talendcomp</groupId>
 				<artifactId>cimt-talendcomp-maven-plugin</artifactId>
-				<version>3.3</version>
+				<version>4.0</version>
 				<configuration>
 					<studioUserComponentFolder>${custom_component_folder}</studioUserComponentFolder>
 					<useTalendLibrariesMavenLocation>false</useTalendLibrariesMavenLocation>

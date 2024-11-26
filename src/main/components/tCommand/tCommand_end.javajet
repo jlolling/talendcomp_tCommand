@@ -19,6 +19,7 @@
 	globalMap.put("<%=cid%>_EXIT_VALUE", exitCode_<%=cid%>);
 	globalMap.put("<%=cid%>_KILLED", <%=cid%>.killed());
 	globalMap.put("<%=cid%>_SUCCESSFUL", <%=cid%>.successful());
+	globalMap.put("<%=cid%>_ERROR_MESSAGE", <%=cid%>.getErrorMessage());
 <%  if (dieOnError) { %>
 	if (<%=cid%>.successful() == false) {
 		if (<%=cid%>.killed()) {

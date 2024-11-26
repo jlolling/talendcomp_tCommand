@@ -64,6 +64,7 @@ public class ProcessHelper {
 	private String errorDetectionString = null;
 	private boolean errorDetectedByOutput = false;
 	private String errorLineDetected = null;
+	private String errorMessage = null;
 	
 	public ProcessHelper() {
 		environmentMap.putAll(System.getenv()); // do not use the env map directly because not modifiable
@@ -139,6 +140,21 @@ public class ProcessHelper {
 		return this;
 	}
 	
+	private void throwException(String message, Exception e) throws Exception {
+		if (true) {
+			errorMessage = message;
+			if (e != null) {
+				throwException(message, e);
+			} else {
+				throwException(message);
+			}
+		}
+	}
+	
+	private void throwException(String message) throws Exception {
+		throwException(message, null);
+	}
+	
 	/**
 	 * Starts the command asynchronously and returns when the process has been started and the streams are established.
 	 * 
@@ -146,7 +162,8 @@ public class ProcessHelper {
 	 */
 	public void execute() throws Exception {
 		if (commandProvided == false) {
-			throw new Exception("No command was set!");
+			errorMessage = "No command was set!";
+			throwException(errorMessage);
 		}
 		File fwd = null;
 		if (workDir != null && workDir.trim().isEmpty() == false) {
@@ -155,7 +172,7 @@ public class ProcessHelper {
 				fwd.mkdirs();
 			}
 			if (fwd.exists() == false) {
-				throw new Exception("work-dir: " + fwd.getAbsolutePath() + " does not exist and cannot be created");
+				throwException("work-dir: " + fwd.getAbsolutePath() + " does not exist and cannot be created");
 			}
 		}
 		executor = DefaultExecutor.builder()
@@ -172,14 +189,14 @@ public class ProcessHelper {
 		try {
 			executor.execute(commandLine, environmentMap, resultHandler);
 		} catch (Exception e) {
-			throw new Exception("Execute command: " + commandLine + " failed: " + e.getMessage(), e);
+			throwException("Execute command: " + commandLine + " failed: " + e.getMessage(), e);
 		}
 		// wait for the streams started
 		while (true) {
 			if (streamProvider.isStarted()) {
 				break;
 			} else if (resultHandler.hasResult() && resultHandler.getException() != null) {
-				throw new Exception("Start of process: " + commandLine.toString() + " failed: " + resultHandler.getException().getMessage(), resultHandler.getException());
+				throwException("Start of process: " + commandLine.toString() + " failed: " + resultHandler.getException().getMessage(), resultHandler.getException());
 			} else {
 				Thread.sleep(10l);
 			}
@@ -194,6 +211,7 @@ public class ProcessHelper {
 			public void run() {
 				BufferedReader reader = streamProvider.getStandardOutReader();
 				String line = null;
+				StringBuilder emb = new StringBuilder();
 				do {
 					try {
 						line = reader.readLine();
@@ -218,9 +236,13 @@ public class ProcessHelper {
 								errorDetectedByOutput = true;
 								errorLineDetected = line;
 							}
+							if (errorDetectedByOutput) {
+								emb.append(line);
+							}
 						}
 					} catch (IOException e) {
-						throw new RuntimeException(e.getMessage(), e);
+						errorMessage = e.getMessage();
+						throw new RuntimeException(errorMessage, e);
 					}
 				} while (line != null);
 				try {
@@ -230,6 +252,12 @@ public class ProcessHelper {
 				}
 				stdQueue.add(endMarker); // to notify about the end
 				stdPumpThreadFinished = true;
+				if (errorMessage != null) {
+					emb.append(errorMessage);
+				}
+				if (emb.length() > 0) {
+					errorMessage = emb.toString();
+				}
 			}
 			
 		};
@@ -239,6 +267,7 @@ public class ProcessHelper {
 			public void run() {
 				BufferedReader reader = streamProvider.getErrorOutReader();
 				String line = null;
+				StringBuilder emb = new StringBuilder();
 				do {
 					try {
 						line = reader.readLine();
@@ -279,9 +308,13 @@ public class ProcessHelper {
 								errorDetectedByOutput = true;
 								errorLineDetected = line;
 							}
+							if (errorDetectedByOutput) {
+								emb.append(line);
+							}
 						}
 					} catch (IOException e) {
-						throw new RuntimeException(e.getMessage(), e);
+						errorMessage = e.getMessage();
+						throw new RuntimeException(errorMessage, e);
 					}
 				} while (line != null);
 				try {
@@ -291,6 +324,12 @@ public class ProcessHelper {
 				}
 				errQueue.add(endMarker); // to notify about the end
 				errPumpThreadFinished = true;
+				if (errorMessage != null) {
+					emb.append(errorMessage);
+				}
+				if (emb.length() > 0) {
+					errorMessage = emb.toString();
+				}
 			}
 			
 		};
@@ -508,6 +547,10 @@ public class ProcessHelper {
 
 	public String getErrorLineDetected() {
 		return errorLineDetected;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
 	}
 
 }
